@@ -1,0 +1,34 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Prisijungimas{% endblock %}
+{% block heading %}Sveiki sugrįžę{% endblock %}
+{% block subheading %}Prisijunkite prie savo paskyros.{% endblock %}
+
+{% block form %}
+<form method="post" novalidate>
+
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <div class="field">
+        <label for="email">El. paštas</label>
+        <input type="email" id="email" name="email"
+               value="{{ email }}" placeholder="vardas@pavyzdys.lt"
+               autocomplete="email" autofocus>
+    </div>
+
+    <div class="field">
+        <label for="password">Slaptažodis</label>
+        <div class="input-wrap">
+            <input type="password" id="password" name="password"
+                   placeholder="Įveskite slaptažodį" autocomplete="current-password">
+            <button type="button" class="toggle-pass" data-toggle-password="password">Rodyti</button>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Prisijungti</button>
+</form>
+
+<p class="auth-switch">Neturite paskyros? <a href="{{ url_for('register') }}">Registruokitės</a></p>
+{% endblock %}

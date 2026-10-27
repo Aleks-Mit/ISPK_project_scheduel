@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block body %}
+<main class="auth-layout">
+
+    <!-- Kairė pusė: prekės ženklas (slepiama mobiliuose) -->
+    <section class="auth-aside">
+        <div class="brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </span>
+            <span class="brand-name">Tvarkaraštis</span>
+        </div>
+
+        <div class="auth-aside-body">
+            <h2>Pamainų planavimas be chaoso</h2>
+            <p>Darbuotojų grafikai, prašymai ir žinutės – viename aiškiame įrankyje.</p>
+            <ul class="feature-list">
+                <li>Visi grafikai vienoje vietoje</li>
+                <li>Visada aktualus, patvirtintas tvarkaraštis</li>
+            </ul>
+        </div>
+
+        <p class="auth-aside-foot">Studentų projekto prototipas</p>
+    </section>
+
+    <!-- Dešinė pusė: forma -->
+    <section class="auth-main">
+        <div class="auth-card">
+            <h1>{% block heading %}{% endblock %}</h1>
+            <p class="muted">{% block subheading %}{% endblock %}</p>
+
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+
+            {% block form %}{% endblock %}
+        </div>
+    </section>
+
+</main>
+{% endblock %}

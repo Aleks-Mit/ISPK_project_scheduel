@@ -1,0 +1,84 @@
+{% extends "app_base.html" %}
+
+{% block title %}Skydelis{% endblock %}
+
+{% block content %}
+
+<!-- Sveikinimas -->
+<section class="welcome">
+    <div>
+        <h1>Sveiki sugrįžę, {{ first_name }}! 👋</h1>
+        <p class="muted">{{ today_text }}</p>
+    </div>
+</section>
+
+<div class="demo-note">
+    ℹ️ Tai <strong>demonstraciniai duomenys</strong> prototipui. Tikra darbuotojų informacija nenaudojama.
+</div>
+
+<!-- Suvestinės kortelės -->
+<section class="cards">
+    {% for card in cards %}
+    <article class="card stat-card">
+        <div class="stat-icon stat-{{ card.color }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ card.icon|safe }}</svg>
+        </div>
+        <div>
+            <p class="stat-label">{{ card.label }}</p>
+            <p class="stat-value">{{ card.value }}</p>
+            <p class="stat-note">{{ card.note }}</p>
+        </div>
+    </article>
+    {% endfor %}
+</section>
+
+<div class="content-grid">
+
+    <!-- Savaitės tvarkaraštis -->
+    <section class="card">
+        <div class="card-head">
+            <h2>Šios savaitės tvarkaraštis</h2>
+            <span class="muted small">{{ week_range }}</span>
+        </div>
+
+        <div class="week">
+            {% for day in week %}
+            <div class="day {% if day.is_today %}today{% endif %}">
+                <p class="day-name">{{ day.short }}</p>
+                <p class="day-date">{{ day.date }}</p>
+
+                {% if day.shift %}
+                    <div class="shift shift-{{ day.shift.key }}">
+                        <strong>{{ day.shift.name }}</strong>
+                        <span>{{ day.shift.time }}</span>
+                    </div>
+                {% else %}
+                    <div class="shift shift-off">
+                        <strong>Poilsio diena</strong>
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Skelbimai -->
+    <section class="card">
+        <div class="card-head">
+            <h2>Naujausi skelbimai</h2>
+        </div>
+
+        <ul class="announcements">
+            {% for item in announcements %}
+            <li>
+                <span class="tag tag-{{ item.color }}">{{ item.tag }}</span>
+                <p class="ann-title">{{ item.title }}</p>
+                <p class="ann-text">{{ item.text }}</p>
+                <p class="ann-time">{{ item.time }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Registracija{% endblock %}
+{% block heading %}Sukurkite paskyrą{% endblock %}
+{% block subheading %}Užpildykite formą ir pradėkite naudotis sistema.{% endblock %}
+
+{% block form %}
+<form method="post" novalidate>
+
+    <div class="field {% if errors.full_name %}has-error{% endif %}">
+        <label for="full_name">Vardas ir pavardė</label>
+        <input type="text" id="full_name" name="full_name"
+               value="{{ form.full_name }}" placeholder="pvz., Jonas Jonaitis"
+               autocomplete="name">
+        {% if errors.full_name %}<p class="field-error">{{ errors.full_name }}</p>{% endif %}
+    </div>
+
+    <div class="field {% if errors.email %}has-error{% endif %}">
+        <label for="email">El. paštas</label>
+        <input type="email" id="email" name="email"
+               value="{{ form.email }}" placeholder="vardas@pavyzdys.lt"
+               autocomplete="email">
+        {% if errors.email %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+    </div>
+
+    <div class="field {% if errors.password %}has-error{% endif %}">
+        <label for="password">Slaptažodis</label>
+        <div class="input-wrap">
+            <input type="password" id="password" name="password"
+                   placeholder="Bent 8 simboliai" autocomplete="new-password">
+            <button type="button" class="toggle-pass" data-toggle-password="password">Rodyti</button>
+        </div>
+        {% if errors.password %}<p class="field-error">{{ errors.password }}</p>{% endif %}
+    </div>
+
+    <div class="field {% if errors.confirm_password %}has-error{% endif %}">
+        <label for="confirm_password">Pakartokite slaptažodį</label>
+        <div class="input-wrap">
+            <input type="password" id="confirm_password" name="confirm_password"
+                   placeholder="Įveskite slaptažodį dar kartą" autocomplete="new-password">
+            <button type="button" class="toggle-pass" data-toggle-password="confirm_password">Rodyti</button>
+        </div>
+        {% if errors.confirm_password %}<p class="field-error">{{ errors.confirm_password }}</p>{% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Registruotis</button>
+</form>
+
+<p class="auth-switch">Jau turite paskyrą? <a href="{{ url_for('login') }}">Prisijunkite</a></p>
+{% endblock %}
