@@ -1,0 +1,67 @@
+{% extends "app_base.html" %}
+
+{% block title %}IT Administravimas{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <div>
+        <h1>Vaidmenų valdymas</h1>
+        <p class="muted">Tik IT administratorius mato šį puslapį.</p>
+    </div>
+</section>
+
+{% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+{% endfor %}
+
+<section class="card" style="margin-top: 1.5rem;">
+    <div class="card-head">
+        <h2>Naudotojai</h2>
+        <span class="muted small">{{ users|length }} paskyros</span>
+    </div>
+
+    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+        <thead>
+            <tr style="border-bottom: 1px solid var(--border); text-align:left;">
+                <th style="padding: 10px 12px;">Vardas</th>
+                <th style="padding: 10px 12px;">El. paštas</th>
+                <th style="padding: 10px 12px;">Dabartinis vaidmuo</th>
+                <th style="padding: 10px 12px;">Keisti</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 10px 12px;">{{ user.full_name }}</td>
+                <td style="padding: 10px 12px; color: var(--muted);">{{ user.email }}</td>
+                <td style="padding: 10px 12px;">
+                    <span style="
+                        display:inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+                        background: {% if user.role == 'admin' %}var(--primary-soft); color: var(--primary)
+                                    {% elif user.role == 'manager' %}#fef3c7; color: #92400e
+                                    {% else %}var(--bg); color: var(--muted){% endif %};
+                    ">
+                        {{ user.role }}
+                    </span>
+                </td>
+                <td style="padding: 10px 12px;">
+                    {% if user.id == session.user_id %}
+                        <span class="muted" style="font-size:0.8rem;">— tai jūs —</span>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('admin_set_role', user_id=user.id) }}"
+                          style="display:flex; gap:8px; align-items:center;">
+                        <select name="role" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font: inherit; background: var(--surface);">
+                            {% for role in roles %}
+                            <option value="{{ role }}" {% if role == user.role %}selected{% endif %}>{{ role }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary" style="padding: 6px 14px; font-size:0.85rem;">Išsaugoti</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

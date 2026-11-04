@@ -61,10 +61,16 @@ def init_db():
             full_name     TEXT NOT NULL,
             email         TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
+            role          TEXT NOT NULL DEFAULT 'employee',
             created_at    TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
         """
     )
+    # if db already exists, without 'role' column
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'employee'")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     db.commit()
     db.close()
 
@@ -76,6 +82,8 @@ init_db()
 # 3. Pagalbinės funkcijos
 # ---------------------------------------------------------------
 
+ROLES = ("adminas", "pamainu vadovas", "darbotojas")
+
 def login_required(view):
     """Apsauga: puslapį mato tik prisijungę naudotojai."""
     @wraps(view)
@@ -86,11 +94,30 @@ def login_required(view):
         return view(*args, **kwargs)
     return wrapped_view
 
+def role_required(*roles):
+    """Apsauga: puslapį mato tik naudotojai su nurodyta rolėmis."""
+    def decorator(view):
+        @wraps(view)
+        def wrapped_view(*args, **kwargs):
+            if "user_id" not in session:
+                flash("Norėdami matyti šį puslapį, prisijunkite.", "error")
+                return redirect(url_for("login"))
+            if "user_role" not in session or session["user_role"] not in roles:
+                flash("Neturite teisės matyti šį puslapį.", "error")
+                return redirect(url_for("dashboard"))
+            return view(*args, **kwargs)
+        return wrapped_view
+    return decorator
+
 
 @app.context_processor
 def inject_globals():
     """Kintamieji, kurie automatiškai prieinami visuose šablonuose."""
-    return {"notification_count": 3}  # demonstracinis pranešimų skaičius
+    return {
+        "notification_count": 3,
+        "user_role": session.get("user_role", "employee"),
+            }   # demonstracinis pranešimų skaičius
+                # & role
 
 
 # ---------------------------------------------------------------
@@ -195,6 +222,9 @@ def register():
         if not errors:
             db = get_db()
             try:
+                # first registered user is admin, others are employees
+                existing_count = db.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+                role = "admin" if existing_count == 0 else "employee"
                 db.execute(
                     "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)",
                     (full_name, email, generate_password_hash(password)),
@@ -231,6 +261,7 @@ def login():
             session.clear()
             session["user_id"] = user["id"]
             session["user_name"] = user["full_name"]
+            session["user_role"] = user["role"]
             return redirect(url_for("dashboard"))
 
     return render_template("login.html", error=error, email=email)
@@ -310,6 +341,29 @@ def messages():
 def settings():
     return render_template("placeholder.html", title="Nustatymai")
 
+@app.route("/admin/roles")
+@role_required("admin")
+def admin_roles():
+    users = get_db().execute( 
+        "SELECT id, full_name, email, role, created_at FROM users ORDER BY full_name"
+        ).fetchall()
+    return render_template("admin_roles.html", users=users, roles=ROLES)
+
+@app.route("/admin/roles/<int:user_id>", methods=["POST"])
+@role_required("admin")
+def admin_set_role(user_id):
+    new_role = request.form.get("role", "employee")
+    if new_role not in ROLES:
+        flash("Neteisinga rolė.", "error")
+        return redirect(url_for("admin_roles"))
+    if user_id == session["user_id"]:
+        flash("Negalite pakeisti savo rolės.", "error")
+        return redirect(url_for("admin_roles"))
+    db = get_db()
+    db.execute("UPDATE users SET role = ? WHERE id = ?", (new_role, user_id))
+    db.commit()
+    flash("Rolė sėkmingai pakeista.", "success")
+    return redirect(url_for("admin_roles"))
 
 # ---------------------------------------------------------------
 # 7. Programos paleidimas
