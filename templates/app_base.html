@@ -37,16 +37,37 @@
             </a>
             {% endfor %}
         
-            {% if user_role == 'admin' %}
-            <a href="{{ url_for('admin_roles') }}"
-               class="nav-link {% if request.endpoint == 'admin_roles' %}active{% endif %}">
+            {% if user_role in ('manager', 'hr', 'admin') %}
+            <a href="{{ url_for('team') }}"
+               class="nav-link {% if request.endpoint == 'team' %}active{% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                Admin
+                Komandos valdymas
+            </a>
+            {% endif %}
+
+            {% if user_role in ('hr', 'admin') %}
+            <a href="{{ url_for('hr_section') }}"
+               class="nav-link {% if request.endpoint == 'hr_section' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                Personalo skiltis
+            </a>
+            {% endif %}
+
+            {% if user_role == 'admin' %}
+            <a href="{{ url_for('admin_roles') }}"
+               class="nav-link {% if request.endpoint == 'admin_roles' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Naudotojai ir vaidmenys
             </a>
             {% endif %}
         </nav>
@@ -80,12 +101,18 @@
 
                 <div class="user-chip">
                     <span class="avatar">{{ session['user_name'][0]|upper }}</span>
-                    <span class="user-name">{{ session['user_name'] }}</span>
+                    <div class="user-meta">
+                        <span class="user-name">{{ session['user_name'] }}</span>
+                        <span class="user-role">{{ role_labels[user_role] }}</span>
+                    </div>
                 </div>
             </div>
         </header>
 
         <main class="page">
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
             {% block content %}{% endblock %}
         </main>
     </div>

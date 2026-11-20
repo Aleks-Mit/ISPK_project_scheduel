@@ -1,0 +1,127 @@
+{% extends "app_base.html" %}
+
+{% block title %}Mano tvarkaraštis{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <div>
+        <h1>Mano tvarkaraštis</h1>
+        <p class="muted">Peržiūrėkite savo suplanuotas pamainas pasirinktam mėnesiui arba savaitei.</p>
+    </div>
+</section>
+
+<div class="demo-note">
+    ℹ️ Tai <strong>demonstraciniai duomenys</strong> prototipui. Tikra darbuotojų informacija nenaudojama.
+</div>
+
+<section class="card">
+    <!-- Rodinio pasirinkimas: mėnuo (tinklelis) / savaitė (sąrašas) -->
+    <div class="schedule-toolbar">
+        <div class="view-toggle" role="group" aria-label="Tvarkaraščio rodinys">
+            <a href="{{ url_for('schedule', view='month') }}"
+               class="view-btn {% if view == 'month' %}active{% endif %}">▦ Mėnuo</a>
+            <a href="{{ url_for('schedule', view='week') }}"
+               class="view-btn {% if view == 'week' %}active{% endif %}">☰ Savaitė</a>
+        </div>
+    </div>
+
+    <!-- Laikotarpio pasirinkimas -->
+    <div class="week-nav">
+        {% if has_prev %}
+        <a class="btn btn-secondary btn-sm" href="{{ prev_url }}">← {{ 'Ankstesnis' if view == 'month' else 'Ankstesnė' }}</a>
+        {% else %}
+        <span class="btn btn-secondary btn-sm btn-disabled">← {{ 'Ankstesnis' if view == 'month' else 'Ankstesnė' }}</span>
+        {% endif %}
+
+        <div class="week-nav-title">
+            <h2>{{ period_title }}</h2>
+            <p class="muted small">
+                {% if offset == 0 %}{{ 'Šis mėnuo' if view == 'month' else 'Ši savaitė' }}
+                {% elif offset == 1 %}{{ 'Kitas mėnuo' if view == 'month' else 'Kita savaitė' }}
+                {% elif offset == -1 %}{{ 'Praėjęs mėnuo' if view == 'month' else 'Praėjusi savaitė' }}
+                {% elif offset > 0 %}Po {{ offset }} {{ 'mėn.' if view == 'month' else 'sav.' }}
+                {% else %}Prieš {{ -offset }} {{ 'mėn.' if view == 'month' else 'sav.' }}{% endif %}
+                {% if offset != 0 %} · <a href="{{ current_url }}">{{ 'Grįžti į šį mėnesį' if view == 'month' else 'Grįžti į šią savaitę' }}</a>{% endif %}
+            </p>
+        </div>
+
+        {% if has_next %}
+        <a class="btn btn-secondary btn-sm" href="{{ next_url }}">{{ 'Kitas' if view == 'month' else 'Kita' }} →</a>
+        {% else %}
+        <span class="btn btn-secondary btn-sm btn-disabled">{{ 'Kitas' if view == 'month' else 'Kita' }} →</span>
+        {% endif %}
+    </div>
+
+    {% if shift_count == 0 %}
+    <!-- Pamainų nėra -->
+    <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3>{{ 'Šį mėnesį' if view == 'month' else 'Šią savaitę' }} pamainų nėra</h3>
+        <p class="muted">Šiam laikotarpiui jums dar nepriskirta jokių pamainų arba tvarkaraštis dar nepaskelbtas.</p>
+    </div>
+    {% else %}
+    <!-- Pamainų legenda ir suvestinė -->
+    <div class="schedule-summary">
+        <div class="legend">
+            {% for key, t in shift_types.items() %}
+            <span class="legend-item"><span class="legend-dot shift-{{ key }}"></span>{{ t[0] }} ({{ t[1] }}–{{ t[2] }})</span>
+            {% endfor %}
+        </div>
+        <span class="muted small">{{ shift_count }} pamainos · {{ total_hours }} val.</span>
+    </div>
+
+    {% if view == 'month' %}
+    <!-- MĖNESIO TINKLELIS: kalendorius, kiekviena diena - langelis -->
+    <div class="month-grid">
+        {% for head in day_heads %}
+        <div class="month-head">{{ head }}</div>
+        {% endfor %}
+
+        {% for cell in cells %}
+        <div class="month-cell {% if not cell.in_month %}out{% endif %} {% if cell.is_today %}today{% endif %}">
+            <span class="month-num">{{ cell.day }}</span>
+            {% if cell.shift %}
+            <div class="month-shift shift-{{ cell.shift.key }}"
+                 title="{{ cell.shift.name }}: {{ cell.shift.start }}–{{ cell.shift.end }}{% if cell.shift.ends_next_day %} (kitą dieną){% endif %}">
+                <span class="chip-short">{{ cell.shift.name[0] }}</span>
+                <span class="chip-name">{{ cell.shift.name }}</span>
+                <span class="chip-time">{{ cell.shift.start }}–{{ cell.shift.end }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- SAVAITĖS SĄRAŠAS: viena diena - viena eilutė -->
+    <ul class="shift-list">
+        {% for day in week %}
+        <li class="shift-row {% if day.is_today %}today{% endif %} {% if not day.shift %}is-off{% endif %}">
+            <div class="shift-date">
+                <strong>{{ day.name }}</strong>
+                <span class="muted small">{{ day.full_date }}{% if day.is_today %} · šiandien{% endif %}</span>
+            </div>
+
+            {% if day.shift %}
+            <div class="shift-info">
+                <span class="shift-pill shift-{{ day.shift.key }}">{{ day.shift.name }}</span>
+                <div class="shift-times">
+                    <div><span class="muted small">Pradžia</span><strong>{{ day.shift.start }}</strong></div>
+                    <div><span class="muted small">Pabaiga</span>
+                        <strong>{{ day.shift.end }}</strong>
+                        {% if day.shift.ends_next_day %}<span class="muted small">(kitą dieną)</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="shift-info">
+                <span class="shift-pill shift-off">Poilsio diena</span>
+            </div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endif %}
+</section>
+{% endblock %}

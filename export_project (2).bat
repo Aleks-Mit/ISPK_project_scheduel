@@ -1,3 +1,9 @@
+rem=r"""
+@echo off
+python "%~f0"
+pause
+exit /b
+"""
 #!/usr/bin/env python3
 """Export all source and config files of the project into one text file."""
 
@@ -6,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "project_export.txt"
-MAX_FILE_BYTES = 300_000  # skip anything bigger (generated or data files)
+MAX_FILE_BYTES = 300_000
 
 SKIP_DIRS = {
     ".venv", "venv", "env", ".git", "__pycache__", ".pytest_cache",
