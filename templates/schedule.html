@@ -11,7 +11,7 @@
 </section>
 
 <div class="demo-note">
-    ℹ️ Tai <strong>demonstraciniai duomenys</strong> prototipui. Tikra darbuotojų informacija nenaudojama.
+    ℹ️ Rodomos <strong>jūsų</strong> pamainos. Šiame prototipe jos sugeneruotos automatiškai (demonstraciniai duomenys).
 </div>
 
 <section class="card">
@@ -85,8 +85,7 @@
                  title="{{ cell.shift.name }}: {{ cell.shift.start }}–{{ cell.shift.end }}{% if cell.shift.ends_next_day %} (kitą dieną){% endif %}">
                 <span class="chip-short">{{ cell.shift.name[0] }}</span>
                 <span class="chip-name">{{ cell.shift.name }}</span>
-                <span class="chip-time">{{ cell.shift.start }}–{{ cell.shift.end }}</span>
-            </div>
+                <span class="chip-time">{{ cell.shift.start }}–{{ cell.shift.end }}{% if cell.shift.ends_next_day %} (+1){% endif %}</span>            </div>
             {% endif %}
         </div>
         {% endfor %}

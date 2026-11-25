@@ -1,0 +1,66 @@
+{% extends "app_base.html" %}
+
+{% block title %}Žinutės{% endblock %}
+
+{% block content %}
+<section class="welcome page-head">
+    <div>
+        <h1>Žinutės</h1>
+        <p class="muted">{% if box == 'sent' %}Jūsų išsiųstos žinutės ir jų perskaitymo statusas.{% else %}Jums atsiųstos žinutės.{% endif %}</p>
+    </div>
+    {% if can_send %}
+    <a class="btn btn-primary" href="{{ url_for('message_new') }}">+ Nauja žinutė</a>
+    {% endif %}
+</section>
+
+<section class="card" {% if box == 'sent' %}data-autorefresh{% endif %}>
+    {% if can_send %}
+    <div class="schedule-toolbar" style="justify-content: flex-start;">
+        <div class="view-toggle">
+            <a href="{{ url_for('messages', box='inbox') }}" class="view-btn {% if box == 'inbox' %}active{% endif %}">Gautos{% if unread_messages %} ({{ unread_messages }}){% endif %}</a>
+            <a href="{{ url_for('messages', box='sent') }}" class="view-btn {% if box == 'sent' %}active{% endif %}">Išsiųstos</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not items %}
+    <div class="empty-state">
+        <div class="empty-icon">✉️</div>
+        <h3>{{ 'Išsiųstų žinučių nėra' if box == 'sent' else 'Žinučių nėra' }}</h3>
+        <p class="muted">{{ 'Išsiuntę žinutę, ją matysite čia.' if box == 'sent' else 'Gavę žinutę, ją matysite čia.' }}</p>
+    </div>
+    {% else %}
+    <ul class="msg-list">
+        {% for m in items %}
+        <li>
+            {% if box == 'sent' %}
+            <a class="msg-item" href="{{ url_for('message_view', message_id=m.id) }}">
+                <div class="msg-item-head">
+                    <strong>Kam: {{ m.names[:3]|join(', ') }}{% if m.names|length > 3 %} ir dar {{ m.names|length - 3 }}{% endif %}</strong>
+                    {% if m.read_count == m.total %}
+                        <span class="status status-read">Perskaityta{% if m.total == 1 %} · {{ m.last_read[:16] }}{% endif %}</span>
+                    {% elif m.read_count == 0 %}
+                        <span class="status status-unread">Neperskaityta</span>
+                    {% else %}
+                        <span class="status status-unread">Perskaityta {{ m.read_count }}/{{ m.total }}</span>
+                    {% endif %}
+                </div>
+                <p class="msg-snippet">{{ m.body|truncate(110) }}</p>
+                <span class="msg-meta">{{ m.created_at[:16] }}</span>
+            </a>
+            {% else %}
+            <a class="msg-item {% if not m.read_at %}unread{% endif %}" href="{{ url_for('message_view', message_id=m.id) }}">
+                <div class="msg-item-head">
+                    <strong>{{ m.sender_name }}</strong>
+                    {% if not m.read_at %}<span class="status status-unread">Neperskaityta</span>{% endif %}
+                </div>
+                <p class="msg-snippet">{{ m.body|truncate(110) }}</p>
+                <span class="msg-meta">{{ m.created_at[:16] }}</span>
+            </a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endblock %}

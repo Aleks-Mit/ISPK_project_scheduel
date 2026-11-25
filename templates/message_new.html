@@ -1,0 +1,48 @@
+{% extends "app_base.html" %}
+
+{% block title %}Nauja žinutė{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <div>
+        <h1>Nauja žinutė</h1>
+        <p class="muted">Pasirinkite vieną ar kelis gavėjus ir parašykite žinutę.</p>
+    </div>
+</section>
+
+<section class="card" style="max-width: 820px;">
+    <form method="post" novalidate>
+
+        <div class="form-group {% if errors.recipients %}has-error{% endif %}">
+            <span class="group-label">Gavėjai</span>
+            {% if users %}
+            <input type="search" id="recipient-search" class="recipient-search"
+                   placeholder="Ieškoti pagal vardą…" autocomplete="off">
+            <div class="recipient-box">
+                {% for u in users %}
+                <label class="recipient" data-name="{{ u.full_name }} {{ u.email }}">
+                    <input type="checkbox" name="recipients" value="{{ u.id }}" {% if u.id in selected %}checked{% endif %}>
+                    <span>{{ u.full_name }}</span>
+                    <span class="muted small">{{ role_labels[u.role] }}</span>
+                </label>
+                {% endfor %}
+                <p class="muted small recipient-empty" id="recipient-empty" hidden>Nieko nerasta.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" data-select-all style="margin-top: 8px;">Pažymėti / atžymėti visus</button>
+            {% else %}
+            <p class="muted">Sistemoje nėra kitų aktyvių naudotojų.</p>
+            {% endif %}
+            {% if errors.recipients %}<p class="field-error">{{ errors.recipients }}</p>{% endif %}
+        </div>
+
+        <div class="field {% if errors.body %}has-error{% endif %}">
+            <label for="body">Žinutė</label>
+            <textarea id="body" name="body" maxlength="2000" placeholder="Parašykite žinutę…">{{ body }}</textarea>
+            {% if errors.body %}<p class="field-error">{{ errors.body }}</p>{% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Siųsti žinutę</button>
+        <a class="btn btn-secondary" href="{{ url_for('messages', box='sent') }}">Atšaukti</a>
+    </form>
+</section>
+{% endblock %}

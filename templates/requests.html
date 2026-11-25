@@ -1,0 +1,126 @@
+{% extends "app_base.html" %}
+
+{% block title %}Prašymai{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <div>
+        <h1>Prašymai</h1>
+        <p class="muted">Pateikite atostogų ar neatvykimo prašymą ir sekite jo būseną.</p>
+    </div>
+</section>
+
+<div class="requests-grid">
+
+    <!-- Nauja užklausa -->
+    <section class="card">
+        <div class="card-head"><h2>Naujas prašymas</h2></div>
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            <div class="field {% if errors.type %}has-error{% endif %}">
+                <label for="type">Prašymo tipas</label>
+                <select id="type" name="type">
+                    <option value="">Pasirinkite...</option>
+                    {% for key, label in types.items() %}
+                    <option value="{{ key }}" {% if form.type == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.type %}<p class="field-error">{{ errors.type }}</p>{% endif %}
+            </div>
+
+            <div class="field-row">
+                <div class="field {% if errors.start_date %}has-error{% endif %}">
+                    <label for="start_date">Nuo</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ form.start_date }}">
+                    {% if errors.start_date %}<p class="field-error">{{ errors.start_date }}</p>{% endif %}
+                </div>
+                <div class="field {% if errors.end_date %}has-error{% endif %}">
+                    <label for="end_date">Iki</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ form.end_date }}">
+                    {% if errors.end_date %}<p class="field-error">{{ errors.end_date }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="field {% if errors.reason %}has-error{% endif %}">
+                <label for="reason">Priežastis</label>
+                <textarea id="reason" name="reason" maxlength="500"
+                          placeholder="Trumpai aprašykite priežastį">{{ form.reason }}</textarea>
+                {% if errors.reason %}<p class="field-error">{{ errors.reason }}</p>{% endif %}
+            </div>
+
+            <div class="field {% if errors.documents %}has-error{% endif %}">
+                <label for="documents">Dokumentai (neprivaloma)</label>
+                <input type="file" id="documents" name="documents" multiple
+                       accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+                <p class="muted small field-hint">PDF, PNG, JPG, DOC, DOCX · iki 5 failų · iki 10 MB iš viso</p>
+                {% if errors.documents %}<p class="field-error">{{ errors.documents }}</p>{% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Pateikti prašymą</button>
+        </form>
+    </section>
+
+    <!-- Mano prašymai -->
+    <section class="card">
+        <div class="card-head">
+            <h2>Mano prašymų istorija</h2>
+            <span class="muted small">Rodoma {{ my_requests|length }} iš {{ total_requests }}</span>
+        </div>
+
+        <form method="get" class="filter-bar">
+            <select name="f_status" class="select" aria-label="Būsena" onchange="this.form.submit()">
+                <option value="">Visos būsenos</option>
+                {% for key, label in statuses.items() %}
+                <option value="{{ key }}" {% if f_status == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="f_type" class="select" aria-label="Tipas" onchange="this.form.submit()">
+                <option value="">Visi tipai</option>
+                {% for key, label in types.items() %}
+                <option value="{{ key }}" {% if f_type == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <noscript><button type="submit" class="btn btn-secondary btn-sm">Filtruoti</button></noscript>
+            {% if f_status or f_type %}<a class="small" href="{{ url_for('requests_page') }}">Išvalyti filtrus</a>{% endif %}
+        </form>
+
+        {% if not my_requests %}
+        <div class="empty-state">
+            <div class="empty-icon">📄</div>
+            {% if total_requests == 0 %}
+            <h3>Prašymų dar nėra</h3>
+            <p class="muted">Pateikę prašymą, čia matysite jo būseną.</p>
+            {% else %}
+            <h3>Nieko nerasta</h3>
+            <p class="muted">Pagal pasirinktus filtrus prašymų nėra.</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <ul class="request-list">
+            {% for r in my_requests %}
+            <li class="request-item">
+                <div class="request-head">
+                    <strong>{{ types.get(r.type, r.type) }}</strong>
+                    <span class="status status-{{ r.status }}">{{ statuses.get(r.status, r.status) }}</span>
+                </div>
+                <p class="request-meta">{{ r.start_date }} – {{ r.end_date }} · {{ r.days }} d.</p>
+                <p class="request-meta">Pateikta: {{ r.created_at[:16] }}</p>
+                <p class="request-reason">{{ r.reason }}</p>
+                {% if r.files %}
+                <p class="small">📎
+                    {% for f in r.files %}
+                    <a href="{{ url_for('request_file', file_id=f.id) }}">{{ f.original_name }}</a>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if r.review_comment %}
+                <p class="small muted">Vadovo komentaras: {{ r.review_comment }}</p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}

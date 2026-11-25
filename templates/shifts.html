@@ -1,0 +1,132 @@
+{% extends "app_base.html" %}
+
+{% block title %}Pamainų valdymas{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <div>
+        <h1>Pamainų valdymas</h1>
+        <p class="muted">Pakeiskite pamainas arba pažymėkite, kad ieškote pakeitimo. Kiti vadovai tai mato ir neieško to paties.</p>
+    </div>
+</section>
+
+<section class="card">
+    <div class="week-nav">
+        {% if prev_url %}<a class="btn btn-secondary btn-sm" href="{{ prev_url }}">← Ankstesnė diena</a>
+        {% else %}<span class="btn btn-secondary btn-sm btn-disabled">← Ankstesnė diena</span>{% endif %}
+
+        <div class="week-nav-title">
+            <h2>{{ day_title }}</h2>
+            <p class="muted small">{% if is_today %}Šiandien{% else %}<a href="{{ url_for('shifts_page') }}">Grįžti į šiandieną</a>{% endif %}</p>
+        </div>
+
+        {% if next_url %}<a class="btn btn-secondary btn-sm" href="{{ next_url }}">Kita diena →</a>
+        {% else %}<span class="btn btn-secondary btn-sm btn-disabled">Kita diena →</span>{% endif %}
+    </div>
+
+    <form method="get" class="filter-bar" style="justify-content: center;">
+        <label for="date" class="small muted">Eiti į datą:</label>
+        <input type="date" id="date" name="date" value="{{ iso }}" min="{{ min_iso }}" max="{{ max_iso }}"
+               class="select" onchange="this.form.submit()">
+    </form>
+
+    {% if not can_edit %}
+    <div class="demo-note">Praėjusių dienų pamainos rodomos tik peržiūrai.</div>
+    {% endif %}
+
+    {% for grp in groups %}
+    <h3 class="shift-group-title">
+        <span class="shift-pill shift-{{ grp.key }}">{{ grp.name }}</span>
+        <span class="muted small">{{ grp.time }} · {{ grp.people|length }} darbuotojai</span>
+    </h3>
+    {% if not grp.people %}
+    <p class="muted small">Šios pamainos šią dieną nėra.</p>
+    {% else %}
+    <div class="table-wrap">
+        <table class="table">
+            <thead><tr><th>Darbuotojas</th><th>Būsena</th><th>Veiksmai</th></tr></thead>
+            <tbody>
+                {% for p in grp.people %}
+                <tr>
+                    <td data-label="Darbuotojas">{{ p.full_name }}</td>
+                    <td data-label="Būsena">
+                        {% if p.status == 'seeking' %}
+                        <span class="status status-seeking">🔎 Pakeitimo ieško {{ p.seeker }} · {{ p.seeking_at[11:16] }}</span>
+                        {% else %}
+                        <span class="status status-active">Priskirta</span>
+                        {% endif %}
+                        {% if p.leave %}
+                        <br><span class="status status-inactive" style="margin-top: 4px;">Patvirtintas nebuvimas ({{ types.get(p.leave, p.leave) }}) – reikia pakeitimo</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Veiksmai">
+                        {% if not can_edit %}
+                        <span class="muted small">—</span>
+                        {% elif p.locked %}
+                        <span class="muted small">Tvarko {{ p.seeker }}. Veiksmai užrakinti.</span>
+                        {% else %}
+                        <form method="post" action="{{ url_for('shift_action', shift_id=p.id) }}" class="shift-action-form" novalidate>
+                            <input type="hidden" name="date" value="{{ iso }}">
+                            <input type="hidden" name="expected_user" value="{{ p.user_id }}">
+                            <select name="new_user" class="select" aria-label="Pakeitėjas">
+                                <option value="">Pasirinkite pakeitėją…</option>
+                                {% for c in candidates %}<option value="{{ c.id }}">{{ c.full_name }}</option>{% endfor %}
+                            </select>
+                            <input type="text" name="reason" class="select" maxlength="200" placeholder="Priežastis (neprivaloma)">
+                            <button type="submit" name="action" value="replace" class="btn btn-primary btn-sm">Paskirti pakeitimą</button>
+                            {% if p.status == 'seeking' %}
+                            <button type="submit" name="action" value="release" class="btn btn-secondary btn-sm">Nustoti ieškoti</button>
+                            {% else %}
+                            <button type="submit" name="action" value="seek" class="btn btn-secondary btn-sm">Ieškau pakeitimo</button>
+                            {% endif %}
+                            <button type="submit" name="action" value="cancel" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Atšaukti šią pamainą?')">Atšaukti</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% if can_edit %}
+    <p class="muted small" style="margin-top: 14px;">
+        Galimi pakeitėjai šią dieną (neturi pamainos ir patvirtinto nebuvimo):
+        {% if candidates %}{{ candidates|map(attribute='full_name')|join(', ') }}{% else %}nėra.{% endif %}
+    </p>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <div class="card-head">
+        <h2>Pamainų pakeitimų žurnalas</h2>
+        <span class="muted small">Paskutiniai 25 pakeitimai (visų vadovų)</span>
+    </div>
+    {% if not changes %}
+    <p class="muted">Pakeitimų dar nebuvo.</p>
+    {% else %}
+    <div class="table-wrap">
+        <table class="table">
+            <thead><tr><th>Atlikta</th><th>Pamaina</th><th>Pakeitimas</th><th>Vadovas</th><th>Priežastis</th></tr></thead>
+            <tbody>
+                {% for c in changes %}
+                <tr>
+                    <td data-label="Atlikta">{{ c.created_at[:16] }}</td>
+                    <td data-label="Pamaina">{{ c.shift_date }} · {{ c.shift_name }}</td>
+                    <td data-label="Pakeitimas">
+                        {% if c.action == 'replace' %}{{ c.from_name }} → <strong>{{ c.to_name }}</strong>
+                        {% else %}{{ c.from_name }} – <strong>atšaukta</strong>{% endif %}
+                    </td>
+                    <td data-label="Vadovas">{{ c.by_name }}</td>
+                    <td data-label="Priežastis">{{ c.reason or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

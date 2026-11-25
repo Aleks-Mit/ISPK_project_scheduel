@@ -1,0 +1,77 @@
+{% extends "app_base.html" %}
+
+{% block title %}Žinutė{% endblock %}
+
+{% block content %}
+<p class="small"><a href="{{ url_for('messages', box='sent' if is_sender else 'inbox') }}">← Atgal į žinutes</a></p>
+
+<div data-message-id="{{ msg.id }}" data-reply-count="{{ reply_count }}">
+
+    <div class="alert alert-success" id="new-replies" hidden>
+        Yra naujų atsakymų. <a href="{{ url_for('message_view', message_id=msg.id) }}">Atnaujinti puslapį</a>
+    </div>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>{% if is_sender %}Jūsų žinutė{% else %}Žinutė nuo {{ msg.sender_name }}{% endif %}</h2>
+            <span class="muted small">{{ msg.created_at[:16] }}</span>
+        </div>
+        <div class="msg-body">{{ msg.body }}</div>
+    </section>
+
+    {% if is_sender %}
+    <section class="card" style="margin-top: 18px;">
+        <div class="card-head"><h2>Gavėjai ir perskaitymas</h2></div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Gavėjas</th><th>Būsena</th></tr></thead>
+                <tbody>
+                    {% for t in threads %}
+                    <tr>
+                        <td data-label="Gavėjas">{{ t.name }}</td>
+                        <td data-label="Būsena">
+                            {% if t.read_at %}
+                            <span class="status status-read" data-read-status="{{ t.user_id }}">Perskaityta · {{ t.read_at[:16] }}</span>
+                            {% else %}
+                            <span class="status status-unread" data-read-status="{{ t.user_id }}">Neperskaityta</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% for t in threads %}
+    <section class="card thread" id="t{{ t.user_id }}">
+        <div class="card-head">
+            <h2>{% if is_sender %}Pokalbis su {{ t.name }}{% else %}Pokalbis{% endif %}</h2>
+        </div>
+
+        {% if t.replies %}
+        <div class="bubble-list">
+            {% for p in t.replies %}
+            <div class="bubble {% if p.sender_id == session.user_id %}mine{% endif %}">
+                <p class="bubble-meta">{{ p.full_name }} · {{ p.created_at[:16] }}</p>
+                <p class="bubble-text">{{ p.body }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="muted small">Atsakymų dar nėra.</p>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('message_reply', message_id=msg.id) }}" class="reply-form" novalidate>
+            {% if is_sender %}<input type="hidden" name="thread" value="{{ t.user_id }}">{% endif %}
+            <div class="field">
+                <textarea name="body" maxlength="2000" placeholder="Rašykite atsakymą…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Atsakyti</button>
+        </form>
+    </section>
+    {% endfor %}
+
+</div>
+{% endblock %}
