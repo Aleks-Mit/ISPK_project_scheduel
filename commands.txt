@@ -1,0 +1,14 @@
+pasword change:
+python -c "import sqlite3; from werkzeug.security import generate_password_hash as g; c=sqlite3.connect('instance/tvarkarastis.db'); cur=c.execute('UPDATE users SET password_hash=? WHERE email=?', (g('test12345'), 'test.test@test.ts')); c.commit(); print('updated rows:', cur.rowcount)"
+
+
+one row per user who has opened their schedule.
+python -c "import sqlite3; c=sqlite3.connect('instance/tvarkarastis.db'); print(c.execute('SELECT user_id, COUNT(*) FROM shifts GROUP BY user_id').fetchall())"
+
+requessts
+python -c "import sqlite3; c=sqlite3.connect('instance/tvarkarastis.db'); [print(tuple(r)) for r in c.execute('SELECT id,user_id,type,start_date,end_date,status,review_comment FROM requests')]"
+
+
+messages
+python -c "import sqlite3; c=sqlite3.connect('instance/tvarkarastis.db'); [print(tuple(r)) for r in c.execute('SELECT m.id, m.sender_id, r.recipient_id, r.read_at FROM messages m JOIN message_recipients r ON r.message_id=m.id')]"
+

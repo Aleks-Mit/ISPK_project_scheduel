@@ -1,0 +1,86 @@
+{% extends "app_base.html" %}
+
+{% block title %}Komandos valdymas{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <div>
+        <h1>Komandos prašymai</h1>
+        <p class="muted">Peržiūrėkite darbuotojų prašymus ir priimkite sprendimus.</p>
+    </div>
+</section>
+
+<section class="card">
+    <div class="schedule-toolbar" style="justify-content: flex-start;">
+        <div class="view-toggle">
+            <a href="{{ url_for('team', status='submitted') }}"
+               class="view-btn {% if current_status == 'submitted' %}active{% endif %}">Laukia ({{ counts.get('submitted', 0) }})</a>
+            <a href="{{ url_for('team', status='approved') }}"
+               class="view-btn {% if current_status == 'approved' %}active{% endif %}">Patvirtinti ({{ counts.get('approved', 0) }})</a>
+            <a href="{{ url_for('team', status='rejected') }}"
+               class="view-btn {% if current_status == 'rejected' %}active{% endif %}">Atmesti ({{ counts.get('rejected', 0) }})</a>
+            <a href="{{ url_for('team', status='all') }}"
+               class="view-btn {% if current_status == 'all' %}active{% endif %}">Visi ({{ total }})</a>
+        </div>
+    </div>
+
+    {% if not reqs %}
+    <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>Prašymų nėra</h3>
+        <p class="muted">Pagal pasirinktą filtrą prašymų nerasta.</p>
+    </div>
+    {% else %}
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Darbuotojas</th>
+                    <th>Tipas</th>
+                    <th>Laikotarpis</th>
+                    <th>Priežastis ir dokumentai</th>
+                    <th>Būsena</th>
+                    <th>Sprendimas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reqs %}
+                <tr>
+                    <td data-label="Darbuotojas">
+                        {{ r.full_name }}<br><span class="muted small">{{ r.email }}</span>
+                    </td>
+                    <td data-label="Tipas">{{ types.get(r.type, r.type) }}</td>
+                    <td data-label="Laikotarpis">{{ r.start_date }} – {{ r.end_date }}<br>
+                        <span class="muted small">{{ r.days }} d.</span></td>
+                    <td data-label="Priežastis">
+                        {{ r.reason }}
+                        {% for f in r.files %}
+                        <br><a class="small" href="{{ url_for('request_file', file_id=f.id) }}">📎 {{ f.original_name }}</a>
+                        {% endfor %}
+                    </td>
+                    <td data-label="Būsena">
+                        <span class="status status-{{ r.status }}">{{ statuses.get(r.status, r.status) }}</span>
+                        {% if r.review_comment %}<br><span class="muted small">{{ r.review_comment }}</span>{% endif %}
+                    </td>
+                    <td data-label="Sprendimas">
+                        {% if r.user_id == session.user_id %}
+                            <span class="muted small">— jūsų prašymas —</span>
+                        {% elif r.status == 'submitted' %}
+                        <form method="post" action="{{ url_for('request_decision', request_id=r.id) }}" class="decision-form">
+                            <input type="text" name="comment" class="select" maxlength="300"
+                                   placeholder="Komentaras (privalomas atmetant)">
+                            <button type="submit" name="decision" value="approved" class="btn btn-success btn-sm">Patvirtinti</button>
+                            <button type="submit" name="decision" value="rejected" class="btn btn-danger btn-sm">Atmesti</button>
+                        </form>
+                        {% else %}
+                            <span class="muted small">Išspręsta</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

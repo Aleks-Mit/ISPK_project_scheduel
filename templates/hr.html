@@ -1,0 +1,190 @@
+{% extends "app_base.html" %}
+
+{% block title %}Personalo skiltis{% endblock %}
+
+{% block content %}
+<section class="welcome no-print">
+    <div>
+        <h1>Mėnesio laiko apskaita</h1>
+        <p class="muted">Sugeneruokite mėnesio ataskaitą: išdirbis, patvirtinti prašymai ir pamainų pakeitimai.</p>
+    </div>
+</section>
+
+<section class="card no-print">
+    <form method="get" class="filter-bar">
+        <label for="month"><strong>Ataskaitos mėnuo</strong></label>
+        <select id="month" name="month" class="select">
+            {% for key, label in options %}
+            <option value="{{ key }}" {% if key == month_key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Sugeneruoti ataskaitą</button>
+    </form>
+</section>
+
+{% if report %}
+<div class="report-head report-section">
+    <div>
+        <h2>Laiko apskaitos ataskaita: {{ report.label }}</h2>
+        <p class="muted small">{{ report.first }} – {{ report.last }} · 1 pamaina = {{ hours_per_shift }} val. · „Išdirbta“ skaičiuojama iki šiandien imtinai.</p>
+    </div>
+    <div class="export-bar no-print">
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('hr_report_csv', month=report.key, part='summary') }}">⬇ Suvestinė (CSV)</a>
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('hr_report_csv', month=report.key, part='requests') }}">⬇ Prašymai (CSV)</a>
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('hr_report_csv', month=report.key, part='adjustments') }}">⬇ Nebuvimai (CSV)</a>
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('hr_report_csv', month=report.key, part='changes') }}">⬇ Pamainų pakeitimai (CSV)</a>        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">🖨 Spausdinti / PDF</button>
+    </div>
+</div>
+
+<section class="report-cards">
+    <div class="card"><p class="stat-label">Išdirbta valandų</p><p class="stat-value">{{ report.totals.worked_hours }}</p></div>
+    <div class="card"><p class="stat-label">Išdirbtos pamainos</p><p class="stat-value">{{ report.totals.worked }}</p></div>
+    <div class="card"><p class="stat-label">Patvirtinti prašymai</p><p class="stat-value">{{ report.approved|length }}</p></div>
+    <div class="card"><p class="stat-label">Atšauktos pamainos</p><p class="stat-value">{{ report.totals.cancelled }}</p></div>
+</section>
+
+<section class="card report-section">
+    <div class="card-head"><h2>Darbuotojų išdirbis</h2></div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Darbuotojas</th>
+                    <th>Priskirta</th>
+                    <th>Neišdirbta (nebuvimas)</th>
+                    <th>Perimta</th>
+                    <th>Perduota</th>
+                    <th>Išdirbta pam.</th>
+                    <th>Išdirbta val.</th>
+                    <th>Atostogos (d.)</th>
+                    <th>Nedarbingumas (d.)</th>
+                    <th>Kita (d.)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in report.rows %}
+                <tr>
+                    <td data-label="Darbuotojas">{{ r.name }}<br><span class="muted small">{{ r.email }}</span></td>
+                    <td data-label="Priskirta">{{ r.planned }}</td>
+                    <td data-label="Neišdirbta">{{ r.cancelled }}</td>
+                    <td data-label="Perimta">{{ r.taken_over }}</td>
+                    <td data-label="Perduota">{{ r.given_away }}</td>
+                    <td data-label="Išdirbta pam.">{{ r.worked }}</td>
+                    <td data-label="Išdirbta val."><strong>{{ r.worked_hours }}</strong></td>
+                    <td data-label="Atostogos (d.)">{{ r.vacation_days }}</td>
+                    <td data-label="Nedarbingumas (d.)">{{ r.sick_days }}</td>
+                    <td data-label="Kita (d.)">{{ r.other_days }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="report-total">
+                    <td data-label="">IŠ VISO</td>
+                    <td data-label="Priskirta">{{ report.totals.planned }}</td>
+                    <td data-label="Neišdirbta">{{ report.totals.cancelled }}</td>
+                    <td data-label="Perimta">{{ report.totals.taken_over }}</td>
+                    <td data-label="Perduota">{{ report.totals.given_away }}</td>
+                    <td data-label="Išdirbta pam.">{{ report.totals.worked }}</td>
+                    <td data-label="Išdirbta val.">{{ report.totals.worked_hours }}</td>
+                    <td data-label="Atostogos (d.)">{{ report.totals.vacation_days }}</td>
+                    <td data-label="Nedarbingumas (d.)">{{ report.totals.sick_days }}</td>
+                    <td data-label="Kita (d.)">{{ report.totals.other_days }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card report-section">
+    <div class="card-head">
+        <h2>Patvirtinti prašymai ir dokumentai</h2>
+        <span class="muted small">{{ report.approved|length }} įrašai</span>
+    </div>
+    {% if not report.approved %}
+    <p class="muted">Šį mėnesį patvirtintų prašymų nėra.</p>
+    {% else %}
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Darbuotojas</th><th>Tipas</th><th>Laikotarpis</th>
+                    <th>Dienos šį mėn.</th><th>Priežastis</th><th>Dokumentai</th><th>Patvirtino</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in report.approved %}
+                <tr>
+                    <td data-label="Darbuotojas">{{ r.full_name }}</td>
+                    <td data-label="Tipas">{{ types.get(r.type, r.type) }}</td>
+                    <td data-label="Laikotarpis">{{ r.start_date }} – {{ r.end_date }}</td>
+                    <td data-label="Dienos šį mėn.">{{ r.days_in_month }}</td>
+                    <td data-label="Priežastis">{{ r.reason }}</td>
+                    <td data-label="Dokumentai">
+                        {% for f in r.files %}
+                        <a class="small" href="{{ url_for('request_file', file_id=f.id) }}">📎 {{ f.original_name }}</a>{% if not loop.last %}<br>{% endif %}
+                        {% else %}<span class="muted small">—</span>{% endfor %}
+                    </td>
+                    <td data-label="Patvirtino">{{ r.approver or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+
+<section class="card report-section">
+    <div class="card-head">
+        <h2>Suderinti pamainų pakeitimai</h2>
+        <span class="muted small">Vadovų atlikti pakeitimai · {{ report.changes|length }} įrašai</span>
+    </div>
+    {% if not report.changes %}
+    <p class="muted">Šį mėnesį vadovai pamainų nekeitė.</p>
+    {% else %}
+    <div class="table-wrap">
+        <table class="table">
+            <thead><tr><th>Pamaina</th><th>Pakeitimas</th><th>Vadovas</th><th>Priežastis</th><th>Atlikta</th></tr></thead>
+            <tbody>
+                {% for c in report.changes %}
+                <tr>
+                    <td data-label="Pamaina">{{ c.shift_date }} · {{ c.shift_name }}</td>
+                    <td data-label="Pakeitimas">
+                        {% if c.action == 'replace' %}{{ c.from_name }} → <strong>{{ c.to_name }}</strong>
+                        {% else %}{{ c.from_name }} – <strong>atšaukta</strong>{% endif %}
+                    </td>
+                    <td data-label="Vadovas">{{ c.by_name }}</td>
+                    <td data-label="Priežastis">{{ c.reason or '—' }}</td>
+                    <td data-label="Atlikta">{{ c.created_at[:16] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+
+<section class="card report-section">
+    <div class="card-head">
+        <h2>Neišdirbtos pamainos dėl patvirtintų nebuvimų</h2>
+        <span class="muted small">Pamainos, kurių nebuvimo metu niekas nepakeitė</span>
+    </div>
+    {% if not report.adjustments %}
+    <p class="muted">Tokių pamainų šį mėnesį nėra.</p>
+    {% else %}
+    <div class="table-wrap">
+        <table class="table">
+            <thead><tr><th>Darbuotojas</th><th>Data</th><th>Pamaina</th><th>Priežastis</th></tr></thead>
+            <tbody>
+                {% for a in report.adjustments %}
+                <tr>
+                    <td data-label="Darbuotojas">{{ a.name }}</td>
+                    <td data-label="Data">{{ a.date }}</td>
+                    <td data-label="Pamaina">{{ a.shift }}</td>
+                    <td data-label="Priežastis">{{ a.reason }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

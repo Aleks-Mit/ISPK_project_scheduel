@@ -651,3 +651,225 @@ a:hover { text-decoration: underline; }
     .view-toggle { width: 100%; }
     .view-btn { flex: 1; text-align: center; }
 }
+
+/* ==========================================================
+   12. US-3 (prašymai)
+   ========================================================== */
+
+   .field select, .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.field textarea { min-height: 110px; resize: vertical; }
+.field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+.field.has-error select, .field.has-error textarea { border-color: var(--danger); }
+.field input[type="file"] { padding: 9px 10px; }
+.field-hint { margin: 6px 0 0; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.requests-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px; align-items: start; }
+
+.status-submitted { color: #b45309; background: #fef3c7; }
+.status-approved  { color: var(--success); background: #dcfce7; }
+.status-rejected  { color: var(--danger); background: var(--danger-soft); }
+
+.request-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.request-item { padding: 14px 16px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; }
+.request-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.request-meta { margin: 4px 0; font-size: 13px; color: var(--muted); }
+.request-reason { margin: 6px 0; font-size: 14px; }
+
+.decision-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.decision-form .select { flex: 1 1 160px; min-width: 160px; }
+
+@media (max-width: 1100px) {
+    .requests-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .field-row { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================
+   13. Žinutės ir pranešimai (US-5 – US-8)
+   ========================================================== */
+
+   [hidden] { display: none !important; }
+
+   .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+   
+   .nav-badge {
+       margin-left: auto;
+       min-width: 22px;
+       padding: 1px 7px;
+       font-size: 12px;
+       font-weight: 700;
+       color: #fff;
+       text-align: center;
+       background: var(--danger);
+       border-radius: 999px;
+   }
+   
+   /* ---------- Pranešimų varpelis ---------- */
+   .notif-wrap { position: relative; }
+   .notif-panel {
+       position: absolute;
+       top: calc(100% + 10px);
+       right: 0;
+       z-index: 50;
+       width: 340px;
+       max-width: calc(100vw - 32px);
+       background: var(--surface);
+       border: 1px solid var(--border);
+       border-radius: 14px;
+       box-shadow: var(--shadow);
+       overflow: hidden;
+   }
+   .notif-head {
+       display: flex;
+       align-items: center;
+       justify-content: space-between;
+       gap: 8px;
+       padding: 12px 14px;
+       border-bottom: 1px solid var(--border);
+   }
+   .link-btn {
+       padding: 0;
+       font: inherit;
+       font-size: 12px;
+       font-weight: 600;
+       color: var(--primary);
+       background: none;
+       border: 0;
+       cursor: pointer;
+   }
+   .link-btn:hover { text-decoration: underline; }
+   .notif-list { list-style: none; margin: 0; padding: 0; max-height: 380px; overflow-y: auto; }
+   .notif-item {
+       display: flex;
+       flex-direction: column;
+       gap: 2px;
+       padding: 12px 14px;
+       color: var(--text);
+       font-weight: 400;
+       border-bottom: 1px solid var(--border);
+   }
+   .notif-item:hover { background: var(--bg); text-decoration: none; }
+   .notif-item.unread { background: var(--primary-soft); }
+   .notif-item.unread strong::before { content: "● "; color: var(--primary); }
+   .notif-preview { font-size: 13px; color: var(--muted); }
+   .notif-time { font-size: 11px; color: #94a3b8; }
+   .notif-empty { padding: 20px 14px; text-align: center; }
+   
+   /* ---------- Žinučių sąrašas ---------- */
+   .msg-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+   .msg-item {
+       display: block;
+       padding: 14px 16px;
+       color: var(--text);
+       font-weight: 400;
+       background: #f8fafc;
+       border: 1px solid var(--border);
+       border-radius: 12px;
+       transition: border-color 0.15s;
+   }
+   .msg-item:hover { border-color: #c7d2fe; text-decoration: none; }
+   .msg-item.unread { background: var(--primary-soft); border-color: var(--primary); }
+   .msg-item.unread strong { font-weight: 800; }
+   .msg-item-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+   .msg-snippet { margin: 0 0 4px; font-size: 14px; color: var(--muted); }
+   .msg-meta { font-size: 12px; color: #94a3b8; }
+   
+   .status-read   { color: var(--success); background: #dcfce7; }
+   .status-unread { color: #b45309; background: #fef3c7; }
+   
+   /* ---------- Naujos žinutės forma ---------- */
+   .form-group { margin-bottom: 18px; }
+   .group-label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+   .recipient-box {
+       display: grid;
+       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+       gap: 4px 8px;
+       max-height: 280px;
+       overflow-y: auto;
+       padding: 10px;
+       background: var(--surface);
+       border: 1px solid var(--border);
+       border-radius: 10px;
+   }
+   .form-group.has-error .recipient-box { border-color: var(--danger); }
+   .recipient { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 14px; border-radius: 8px; cursor: pointer; }
+   .recipient:hover { background: var(--primary-soft); }
+   .recipient input { width: auto; margin: 0; }
+   
+   /* ---------- Žinutės peržiūra ir pokalbis ---------- */
+   .msg-body { white-space: pre-wrap; word-break: break-word; font-size: 15px; }
+   .thread { margin-top: 18px; scroll-margin-top: 90px; }
+   .thread:target { border-color: var(--primary); }
+   .bubble-list { display: flex; flex-direction: column; gap: 10px; margin: 0 0 14px; }
+   .bubble { align-self: flex-start; max-width: 80%; padding: 10px 14px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 14px; }
+   .bubble.mine { align-self: flex-end; background: var(--primary-soft); border-color: #c7d2fe; }
+   .bubble-meta { margin: 0 0 2px; font-size: 12px; color: var(--muted); }
+   .bubble-text { margin: 0; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+   .reply-form .field { margin-bottom: 10px; }
+   .reply-form textarea { min-height: 80px; }
+
+   .recipient-search {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.recipient-search:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+.recipient-empty { grid-column: 1 / -1; margin: 6px 8px; }
+
+/* ==========================================================
+   14. US-10 filtrai ir US-12 ataskaita
+   ========================================================== */
+
+   .filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+
+   .report-section { margin-top: 18px; }
+   .report-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+   .report-head h2 { font-size: 20px; }
+   .export-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+   .report-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+   .report-total td { font-weight: 700; background: #f8fafc; }
+   
+   @media (max-width: 900px) {
+       .report-cards { grid-template-columns: repeat(2, 1fr); }
+   }
+   
+   @media print {
+       .sidebar, .topbar, .sidebar-overlay, .no-print { display: none !important; }
+       .app-content { margin-left: 0; }
+       body { background: #fff; }
+       .page { max-width: none; padding: 0; }
+       .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; }
+       .table thead { display: table-header-group; }
+   }
+
+/* ==========================================================
+   15. Pamainų valdymas
+   ========================================================== */
+
+   .status-seeking { color: #1d4ed8; background: #dbeafe; }
+   .shift-group-title { display: flex; align-items: center; gap: 10px; margin: 22px 0 8px; font-size: 16px; }
+   .shift-action-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+   .shift-action-form .select { flex: 1 1 150px; min-width: 150px; }
